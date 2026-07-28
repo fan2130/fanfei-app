@@ -1241,6 +1241,12 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 </div>
 <style>@keyframes bootSpin{to{transform:rotate(360deg)}}</style>
 
+<!-- PWA 安装按钮 -->
+<div id="installBtn" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9998;background:linear-gradient(135deg,#4A8DFF,#9B7FE8);color:#fff;padding:14px 32px;border-radius:50px;font-size:15px;font-weight:600;box-shadow:0 8px 28px rgba(74,141,255,0.45);cursor:pointer;border:none;display:flex;align-items:center;gap:8px;white-space:nowrap;">
+  <span style="font-size:18px;">📱</span>
+  <span>安装到桌面</span>
+</div>
+
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-header">
@@ -3609,6 +3615,106 @@ function init() {
 
 document.addEventListener('DOMContentLoaded', init);
 if (document.readyState !== 'loading') init();
+
+// ===== PWA 安装处理 =====
+var deferredPrompt = null;
+
+// 捕获安装提示事件
+window.addEventListener('beforeinstallprompt', function(e) {
+  console.log('beforeinstallprompt fired');
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallButton();
+});
+
+// 显示安装按钮
+function showInstallButton() {
+  var btn = document.getElementById('installBtn');
+  if (btn) {
+    btn.style.display = 'flex';
+  }
+}
+
+// 点击安装按钮
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('installBtn');
+  if (btn) {
+    btn.addEventListener('click', function() {
+      if (!deferredPrompt) {
+        // 如果浏览器没触发 beforeinstallprompt，显示手动安装指引
+        showInstallGuide();
+        return;
+      }
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(choice) {
+        console.log('Install choice:', choice.outcome);
+        if (choice.outcome === 'accepted') {
+          btn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      });
+    });
+  }
+});
+
+// 检测是否已安装
+window.addEventListener('appinstalled', function() {
+  var btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'none';
+  console.log('App installed');
+});
+
+// 如果已经以 standalone 模式运行，隐藏安装按钮
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('installBtn');
+    if (btn) btn.style.display = 'none';
+  });
+}
+
+// 手动安装指引弹窗（当 beforeinstallprompt 不可用时）
+function showInstallGuide() {
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  var isAndroid = /Android/.test(navigator.userAgent);
+  var guide = '';
+  
+  if (isAndroid) {
+    guide = '<div style="text-align:left;line-height:1.8;font-size:14px;">' +
+      '<p style="margin:0 0 10px;"><b>Chrome 浏览器安装方法：</b></p>' +
+      '<p style="margin:0 0 6px;">1. 点 Chrome 右上角 <b>⋮</b> 三个点</p>' +
+      '<p style="margin:0 0 6px;">2. 找到「<b>安装应用</b>」或「<b>添加到主屏幕</b>」</p>' +
+      '<p style="margin:0 0 6px;">3. 如果没有，试试点「<b>添加到主屏幕</b>」</p>' +
+      '<hr style="border:none;border-top:1px solid #eee;margin:12px 0;">' +
+      '<p style="margin:0 0 10px;"><b>vivo 浏览器安装方法：</b></p>' +
+      '<p style="margin:0 0 6px;">1. 点底部 <b>☰</b> 菜单</p>' +
+      '<p style="margin:0 0 6px;">2. 选「<b>添加到桌面</b>」</p>' +
+      '<p style="margin:0 0 6px;">3. 勾选「<b>以应用模式打开</b>」（如果有）</p>' +
+      '<hr style="border:none;border-top:1px solid #eee;margin:12px 0;">' +
+      '<p style="margin:0;color:#999;font-size:12px;">安装后桌面会出现「帆飞之路」图标，点击即全屏运行无地址栏</p>' +
+      '</div>';
+  } else if (isIOS) {
+    guide = '<div style="text-align:left;line-height:1.8;font-size:14px;">' +
+      '<p style="margin:0 0 10px;"><b>Safari 安装方法：</b></p>' +
+      '<p style="margin:0 0 6px;">1. 点底部 <b>分享</b> 按钮（方框+向上箭头）</p>' +
+      '<p style="margin:0 0 6px;">2. 选「<b>添加到主屏幕</b>」</p>' +
+      '<p style="margin:0 0 6px;">3. 点「<b>添加</b>」</p>' +
+      '</div>';
+  } else {
+    guide = '<div style="text-align:left;line-height:1.8;font-size:14px;">' +
+      '<p style="margin:0;">请在浏览器菜单中选择「安装应用」或「添加到主屏幕」</p>' +
+      '</div>';
+  }
+  
+  var mask = document.createElement('div');
+  mask.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+  box.innerHTML = '<div style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1B2230;">📱 安装到桌面</div>' + guide + '<button id="closeGuide" style="margin-top:20px;width:100%;padding:12px;background:linear-gradient(135deg,#4A8DFF,#9B7FE8);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">知道了</button>';
+  mask.appendChild(box);
+  document.body.appendChild(mask);
+  mask.querySelector('#closeGuide').addEventListener('click', function() { mask.remove(); });
+  mask.addEventListener('click', function(e) { if (e.target === mask) mask.remove(); });
+}
 </script>
 
 </body>
