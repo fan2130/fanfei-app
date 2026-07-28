@@ -1234,6 +1234,13 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 </head>
 <body>
 
+<div id="bootScreen" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#E8EDF3;z-index:9999;transition:opacity 0.3s;">
+  <div style="width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#4A8DFF,#9B7FE8);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:700;margin-bottom:16px;box-shadow:0 8px 24px rgba(74,141,255,0.3);">帆</div>
+  <div style="color:#5E6A7E;font-size:14px;">正在加载帆飞之路...</div>
+  <div style="margin-top:12px;width:32px;height:32px;border:3px solid #D0D8E4;border-top-color:#4A8DFF;border-radius:50%;animation:bootSpin 0.8s linear infinite;"></div>
+</div>
+<style>@keyframes bootSpin{to{transform:rotate(360deg)}}</style>
+
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-header">
@@ -3578,20 +3585,31 @@ function clearAllData() {
    初始化
    ========================================================== */
 function init() {
-  loadState();
-  applyTheme(state.theme);
-  applyCustomColors();
-  renderSidebar();
-  renderContent();
-  bindGlobalEvents();
-  // 注册 Service Worker (PWA 离线支持)
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js').then(() => {
-      console.log('SW registered');
-    }).catch(err => console.log('SW failed:', err));
+  try {
+    loadState();
+    applyTheme(state.theme);
+    applyCustomColors();
+    renderSidebar();
+    renderContent();
+    bindGlobalEvents();
+    // 注册 Service Worker (PWA 离线支持)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').then(() => {
+        console.log('SW registered');
+      }).catch(err => console.log('SW failed:', err));
+    }
+  } catch (e) {
+    console.error('Init error:', e);
+    document.body.innerHTML = '<div style="padding:40px 20px;text-align:center;font-family:sans-serif;"><div style="font-size:48px;margin-bottom:16px;">😕</div><div style="font-size:16px;font-weight:600;margin-bottom:8px;color:#1F2937;">页面加载出错</div><div style="font-size:13px;color:#5E6A7E;max-width:300px;margin:0 auto;">' + (e.message || '未知错误') + '</div><div style="margin-top:20px;"><a href="https://fan2130.github.io/fanfei-app/" style="display:inline-block;padding:10px 24px;background:#4A8DFF;color:#fff;border-radius:12px;text-decoration:none;font-size:14px;">重新加载</a></div></div>';
   }
+  // 隐藏加载屏
+  var bs = document.getElementById('bootScreen');
+  if (bs) { bs.style.opacity = '0'; setTimeout(function(){ bs.style.display = 'none'; }, 300); }
 }
 
 document.addEventListener('DOMContentLoaded', init);
 if (document.readyState !== 'loading') init();
 </script>
+
+</body>
+</html>
