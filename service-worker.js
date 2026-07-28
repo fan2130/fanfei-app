@@ -1,5 +1,5 @@
 // 帆飞之路 Service Worker - 离线缓存
-const CACHE_NAME = 'fanfei-v1';
+const CACHE_NAME = 'fanfei-v2';
 const ASSETS = [
   './',
   './index.html',
