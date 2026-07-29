@@ -141,7 +141,7 @@ a { color: var(--color-primary); text-decoration: none; }
   cursor: pointer;
   color: var(--color-text);
   margin: 3px 0;
-  transition: all 0.18s;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
   position: relative;
 }
 .nav-item:hover { background: var(--color-bg-soft); }
@@ -190,7 +190,7 @@ a { color: var(--color-primary); text-decoration: none; }
   font-size: 13px;
   color: var(--color-text-2);
   cursor: pointer;
-  transition: all 0.18s;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .footer-btn:hover { background: var(--color-bg-soft); color: var(--color-text); }
 .footer-btn .nav-icon { width: 32px; height: 32px; font-size: 14px; }
@@ -243,7 +243,7 @@ a { color: var(--color-primary); text-decoration: none; }
   color: #fff;
   background: var(--gradient-hero);
   font-size: 18px;
-  transition: all 0.18s;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
   box-shadow: var(--shadow-soft);
   position: relative;
 }
@@ -256,11 +256,7 @@ a { color: var(--color-primary); text-decoration: none; }
   min-height: 0;
 }
 .module-view { display: none; }
-.module-view.active { display: block; animation: fadeIn 0.25s ease; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+.module-view.active { display: block; }
 
 /* PWA safe area */
 body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
@@ -304,7 +300,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
-  transition: all 0.18s;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
   white-space: nowrap;
 }
 .btn-primary {
@@ -339,7 +335,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   border-radius: 10px;
   font-size: 13px;
   color: var(--color-text);
-  transition: all 0.18s;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .input:focus, .select:focus, .textarea:focus {
   border-color: var(--color-primary);
@@ -429,7 +425,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   background: var(--gradient-hero);
   border-radius: 6px 6px 2px 2px;
   position: relative;
-  transition: all 0.3s;
+  transition: height 0.3s;
   min-height: 4px;
 }
 .week-bar.early { background: linear-gradient(180deg, #2DC985 0%, #2DC985 100%); }
@@ -555,7 +551,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   font-size: 13px;
   color: var(--color-text-2);
   font-weight: 500;
-  transition: all 0.18s;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
   cursor: pointer;
 }
 .tab.active {
@@ -565,7 +561,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   box-shadow: 0 2px 6px rgba(20, 30, 60, 0.08);
 }
 .tab-panel { display: none; }
-.tab-panel.active { display: block; animation: fadeIn 0.25s ease; }
+.tab-panel.active { display: block; }
 
 .sector-grid {
   display: grid;
@@ -577,7 +573,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   border-radius: var(--radius-lg);
   padding: 16px;
   box-shadow: var(--shadow-card);
-  transition: all 0.2s;
+  transition: background-color 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .sector-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
 .sector-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
@@ -728,7 +724,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   color: var(--color-text-2);
   background: var(--color-bg-soft);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s;
   position: relative;
   padding: 2px;
   gap: 1px;
@@ -1034,9 +1030,8 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   justify-content: center;
   z-index: 100;
   padding: 20px;
-  backdrop-filter: blur(4px);
 }
-.modal-mask.show { display: flex; animation: fadeIn 0.2s ease; }
+.modal-mask.show { display: flex; }
 .modal {
   background: var(--color-bg-card);
   border-radius: var(--radius-xl);
@@ -1128,7 +1123,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   background: var(--color-border);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s;
   flex-shrink: 0;
 }
 .switch::after {
@@ -1138,7 +1133,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   width: 16px; height: 16px;
   background: #fff;
   border-radius: 50%;
-  transition: all 0.2s;
+  transition: background-color 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 .switch.on { background: var(--color-primary); }
@@ -1162,7 +1157,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   font-weight: 500;
   z-index: 200;
   opacity: 0;
-  transition: all 0.3s;
+  transition: opacity 0.25s, transform 0.25s;
   box-shadow: var(--shadow-strong);
   pointer-events: none;
 }
@@ -1185,7 +1180,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   justify-content: center;
   box-shadow: var(--shadow-fab);
   z-index: 45;
-  transition: all 0.2s;
+  transition: background-color 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .fab:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 26px rgba(74, 141, 255, 0.42); }
 
@@ -1196,7 +1191,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s;
-  backdrop-filter: blur(2px);
 }
 .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
 
@@ -1366,7 +1360,13 @@ function loadState() {
   } catch (e) { console.error('loadState error', e); }
 }
 
+let _saveTimer = null;
 function saveState() {
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(_doSave, 500);
+}
+function _doSave() {
+  _saveTimer = null;
   try {
     const data = {
       sleep: state.sleep, exercises: state.exercises, holdings: state.holdings,
@@ -1380,6 +1380,7 @@ function saveState() {
     }
   } catch (e) { toast('保存失败：' + e.message, 'error'); }
 }
+window.addEventListener('beforeunload', function() { if (_saveTimer) { clearTimeout(_saveTimer); _doSave(); } });
 
 const $ = (s, p = document) => p.querySelector(s);
 const $$ = (s, p = document) => Array.from(p.querySelectorAll(s));
@@ -1511,7 +1512,6 @@ function renderContent() {
     default:         html = viewHome();
   }
   c.innerHTML = html;
-  bindModuleEvents();
   if (state.current === 'english') {
     renderDialogues();
     renderProEnglish();
@@ -1564,7 +1564,7 @@ function viewHome() {
       <div style="font-size:12px; opacity:0.85;">${date}</div>
       <div style="font-size:24px; font-weight:700; margin: 6px 0;">${greeting}，帆</div>
       <div style="font-size:13px; opacity:0.9;">${tasks.length ? '今天有 ' + tasks.length + ' 件事值得关注' : '先把今天最重要的一步走完'}</div>
-      <button class="btn" style="position:absolute; right:20px; top:20px; background:rgba(255,255,255,0.22); color:#fff; border-radius:20px; padding: 6px 14px; font-size:12px; backdrop-filter:blur(4px);" onclick="openQuickAdd()">+ 添加</button>
+      <button class="btn" style="position:absolute; right:20px; top:20px; background:rgba(255,255,255,0.22); color:#fff; border-radius:20px; padding: 6px 14px; font-size:12px; " onclick="openQuickAdd()">+ 添加</button>
       <div style="position:absolute; right:-30px; top:-30px; width:140px; height:140px; background:rgba(255,255,255,0.1); border-radius:50%;"></div>
     </div>
 
@@ -3145,149 +3145,101 @@ function exportColors() {
 /* ==========================================================
    全局事件绑定
    ========================================================== */
-function bindModuleEvents() {
-  // Tabs
-  $$('.tabs').forEach(tabsEl => {
-    tabsEl.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabsEl.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        const target = tab.dataset.tab;
-        const parent = tabsEl.parentElement;
-        parent.querySelectorAll('.tab-panel').forEach(p => {
+function bindContentDelegation() {
+  var content = $('#content');
+
+  content.addEventListener('click', function(e) {
+    var tabEl = e.target.closest('.tab[data-tab]');
+    if (tabEl) {
+      var tabsEl = tabEl.closest('.tabs');
+      if (tabsEl) {
+        tabsEl.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+        tabEl.classList.add('active');
+        var target = tabEl.dataset.tab;
+        tabsEl.parentElement.querySelectorAll('.tab-panel').forEach(function(p) {
           p.classList.toggle('active', p.dataset.tab === target);
         });
         if (target === 'daily') renderDialogues();
         if (target === 'pro') renderProEnglish();
-      });
-    });
+      }
+      return;
+    }
+    var dayEl = e.target.closest('.saving-day[data-date]');
+    if (dayEl) { openSavingForm(dayEl.dataset.date); return; }
+    var monthEl = e.target.closest('[data-month]');
+    if (monthEl) { changeSavingMonth(Number(monthEl.dataset.month)); return; }
+    var esEl = e.target.closest('[data-edit-saving]');
+    if (esEl) { openSavingForm(esEl.dataset.editSaving, state.savings[esEl.dataset.editSaving]); return; }
+    var dsEl = e.target.closest('[data-del-saving]');
+    if (dsEl) { deleteSaving(dsEl.dataset.delSaving); return; }
+    var deEl = e.target.closest('[data-del-expense]');
+    if (deEl) { deleteExpense(deEl.dataset.delExpense); return; }
+    var ebEl = e.target.closest('[data-edit-book]');
+    if (ebEl) { var bk = state.books.find(function(x) { return x.id === ebEl.dataset.editBook; }); if (bk) openBookForm(bk); return; }
+    var dbEl = e.target.closest('[data-del-book]');
+    if (dbEl) { deleteBook(dbEl.dataset.delBook); return; }
+    var etEl = e.target.closest('[data-edit-thought]');
+    if (etEl) { var th = state.thoughts.find(function(x) { return x.id === etEl.dataset.editThought; }); if (th) openThoughtForm(th); return; }
+    var dtEl = e.target.closest('[data-del-thought]');
+    if (dtEl) { deleteThought(dtEl.dataset.delThought); return; }
+    var eskEl = e.target.closest('[data-edit-skill]');
+    if (eskEl) { var sk = state.skills.find(function(x) { return x.id === eskEl.dataset.editSkill; }); if (sk) openSkillForm(sk); return; }
+    var dskEl = e.target.closest('[data-del-skill]');
+    if (dskEl) { deleteSkill(dskEl.dataset.delSkill); return; }
+    var themeEl = e.target.closest('[data-theme]');
+    if (themeEl) { applyTheme(themeEl.dataset.theme); renderContent(); return; }
+    var goEl = e.target.closest('[data-go]');
+    if (goEl) { switchModule(goEl.dataset.go); return; }
   });
 
-  // Saving: month nav
-  $$('[data-month]').forEach(b => {
-    b.addEventListener('click', () => changeSavingMonth(Number(b.dataset.month)));
-  });
-  // Saving: day click
-  $$('.saving-day[data-date]').forEach(el => {
-    el.addEventListener('click', () => openSavingForm(el.dataset.date));
-  });
-  $$('[data-edit-saving]').forEach(b => {
-    b.addEventListener('click', () => openSavingForm(b.dataset.editSaving, state.savings[b.dataset.editSaving]));
-  });
-  $$('[data-del-saving]').forEach(b => {
-    b.addEventListener('click', () => deleteSaving(b.dataset.delSaving));
-  });
-
-  // Expenses
-  $$('[data-del-expense]').forEach(b => {
-    b.addEventListener('click', () => deleteExpense(b.dataset.delExpense));
-  });
-
-  // Books
-  $$('[data-edit-book]').forEach(b => {
-    b.addEventListener('click', () => {
-      const book = state.books.find(x => x.id === b.dataset.editBook);
-      if (book) openBookForm(book);
-    });
-  });
-  $$('[data-del-book]').forEach(b => {
-    b.addEventListener('click', () => deleteBook(b.dataset.delBook));
-  });
-
-  // Thoughts
-  $$('[data-edit-thought]').forEach(b => {
-    b.addEventListener('click', () => {
-      const t = state.thoughts.find(x => x.id === b.dataset.editThought);
-      if (t) openThoughtForm(t);
-    });
-  });
-  $$('[data-del-thought]').forEach(b => {
-    b.addEventListener('click', () => deleteThought(b.dataset.delThought));
-  });
-
-  // Skills
-  $$('[data-edit-skill]').forEach(b => {
-    b.addEventListener('click', () => {
-      const s = state.skills.find(x => x.id === b.dataset.editSkill);
-      if (s) openSkillForm(s);
-    });
-  });
-  $$('[data-del-skill]').forEach(b => {
-    b.addEventListener('click', () => deleteSkill(b.dataset.delSkill));
-  });
-
-  // Theme switch (developer)
-  $$('[data-theme]').forEach(b => {
-    b.addEventListener('click', () => {
-      applyTheme(b.dataset.theme);
-      renderContent();
-    });
-  });
-
-  // Color pickers
-  $$('[data-color]').forEach(inp => {
-    inp.addEventListener('input', e => {
-      const key = inp.dataset.color;
-      const v = e.target.value;
-      setColor(key, v);
-      const text = document.querySelector(`[data-color-text="${key}"]`);
-      if (text) text.value = v;
-    });
-  });
-  $$('[data-color-text]').forEach(inp => {
-    inp.addEventListener('change', e => {
-      setColor(inp.dataset.colorText, e.target.value);
-      const cp = document.querySelector(`[data-color="${inp.dataset.colorText}"]`);
-      if (cp) cp.value = e.target.value;
-    });
-  });
-
-  // Font
-  const fontSel = $('#fontSelect');
-  if (fontSel) {
-    fontSel.addEventListener('change', e => {
-      document.documentElement.style.setProperty('--font-family', e.target.value);
-    });
-  }
-  const fontSize = $('#fontSize');
-  if (fontSize) {
-    fontSize.addEventListener('input', e => {
-      const v = e.target.value + 'px';
+  content.addEventListener('input', function(e) {
+    var el = e.target;
+    if (el.dataset && el.dataset.color) {
+      setColor(el.dataset.color, el.value);
+      var text = document.querySelector('[data-color-text="' + el.dataset.color + '"]');
+      if (text) text.value = el.value;
+      return;
+    }
+    if (el.id === 'fontSize') {
+      var v = el.value + 'px';
       document.documentElement.style.fontSize = v;
       document.body.style.fontSize = v;
-      const lbl = $('#fontSizeLabel');
+      var lbl = $('#fontSizeLabel');
       if (lbl) lbl.textContent = v;
-    });
-  }
+    }
+  });
 
-  // Home quick action
-  $$('[data-go]').forEach(b => {
-    b.addEventListener('click', () => switchModule(b.dataset.go));
+  content.addEventListener('change', function(e) {
+    var el = e.target;
+    if (el.dataset && el.dataset.colorText) {
+      setColor(el.dataset.colorText, el.value);
+      var cp = document.querySelector('[data-color="' + el.dataset.colorText + '"]');
+      if (cp) cp.value = el.value;
+      return;
+    }
+    if (el.id === 'fontSelect') {
+      document.documentElement.style.setProperty('--font-family', el.value);
+    }
   });
 }
 
 function bindGlobalEvents() {
-  // 侧边栏底部按钮
-  $$('[data-action]').forEach(b => {
-    b.addEventListener('click', () => handleAction(b.dataset.action));
+  bindContentDelegation();
+  $$('[data-action]').forEach(function(b) {
+    b.addEventListener('click', function() { handleAction(b.dataset.action); });
   });
-  // 顶部汉堡菜单
-  const menuBtn = $('#topbarMenu');
+  var menuBtn = $('#topbarMenu');
   if (menuBtn) menuBtn.addEventListener('click', toggleSidebar);
-  // 快速添加
-  const addBtn = $('#topbarAdd');
+  var addBtn = $('#topbarAdd');
   if (addBtn) addBtn.addEventListener('click', openQuickAdd);
-  const fab = $('#fabBtn');
+  var fab = $('#fabBtn');
   if (fab) fab.addEventListener('click', openQuickAdd);
-  // 遮罩关闭侧边栏
-  const overlay = $('#sidebarOverlay');
+  var overlay = $('#sidebarOverlay');
   if (overlay) overlay.addEventListener('click', closeSidebar);
-  // 模态框关闭
-  $('#modalMask').addEventListener('click', e => {
+  $('#modalMask').addEventListener('click', function(e) {
     if (e.target.id === 'modalMask' || e.target.hasAttribute('data-close')) closeModal();
   });
-  // ESC 关闭
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') { closeModal(); closeSidebar(); }
   });
 }
