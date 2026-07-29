@@ -258,6 +258,30 @@ a { color: var(--color-primary); text-decoration: none; }
 .module-view { display: none; }
 .module-view.active { display: block; }
 
+.mood-item {
+  font-size: 28px; width: 52px; height: 52px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+.mood-item:hover { transform: scale(1.1); }
+.mood-item.selected {
+  background: var(--gradient-hero);
+  transform: scale(1.15);
+  box-shadow: 0 4px 14px rgba(74, 141, 255, 0.35);
+}
+
+.home-center {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 160px);
+  text-align: center;
+  padding: 20px 16px;
+}
+
 /* PWA safe area */
 body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
 .topbar { padding-top: env(safe-area-inset-top); }
@@ -1235,12 +1259,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 </div>
 <style>@keyframes bootSpin{to{transform:rotate(360deg)}}</style>
 
-<!-- PWA 安装按钮 -->
-<div id="installBtn" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9998;background:linear-gradient(135deg,#4A8DFF,#9B7FE8);color:#fff;padding:14px 32px;border-radius:50px;font-size:15px;font-weight:600;box-shadow:0 8px 28px rgba(74,141,255,0.45);cursor:pointer;border:none;display:flex;align-items:center;gap:8px;white-space:nowrap;">
-  <span style="font-size:18px;">📱</span>
-  <span>安装到桌面</span>
-</div>
-
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-header">
@@ -1279,13 +1297,10 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
         <div class="topbar-title">帆 工作台</div>
         <div class="topbar-desc" id="topbarDesc">今天</div>
       </div>
-      <div class="topbar-right">
-        <button class="topbar-btn" id="topbarAdd" title="快速添加">+</button>
-      </div>
+      <div class="topbar-right"></div>
     </header>
 
     <div class="content" id="content"></div>
-    <button class="fab" id="fabBtn" title="快速添加">+</button>
   </main>
 </div>
 
@@ -1318,7 +1333,7 @@ const defaultModules = [
   { id: 'sleep',     name: '睡觉记录',   icon: '🌙', group: 'life', visible: true, builtIn: true, desc: '追踪每天的睡眠节律' },
   { id: 'exercise',  name: '锻炼打卡',   icon: '🏃', group: 'life', visible: true, builtIn: true, desc: '坚持每天的运动打卡' },
   { id: 'invest',    name: '投资',       icon: '📈', group: 'finance', visible: true, builtIn: true, desc: '板块热点与持仓分析' },
-  { id: 'expense',   name: '每日支出',   icon: '💰', group: 'finance', visible: true, builtIn: true, desc: '自动归类每日支出' },
+  { id: 'expense',   name: '每日支出',   icon: '💰', group: 'finance', visible: false, builtIn: true, desc: '自动归类每日支出' },
   { id: 'saving',    name: '存款记录',   icon: '🏦', group: 'finance', visible: true, builtIn: true, desc: '记录每一笔存款' },
   { id: 'english',   name: '英语学习',   icon: '🇬🇧', group: 'growth', visible: true, builtIn: true, desc: '日常对话与专业英语' },
   { id: 'reading',   name: '看书',       icon: '📚', group: 'growth', visible: true, builtIn: true, desc: '阅读进度与观后感' },
@@ -1342,6 +1357,7 @@ let state = {
   books: [],
   thoughts: [],
   skills: [],
+  mood: {},
   customColors: {},
 };
 
@@ -1372,6 +1388,7 @@ function _doSave() {
       sleep: state.sleep, exercises: state.exercises, holdings: state.holdings,
       savings: state.savings, expenses: state.expenses, books: state.books,
       thoughts: state.thoughts, skills: state.skills,
+      mood: state.mood,
     };
     localStorage.setItem(STORE_KEY, JSON.stringify(data));
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ theme: state.theme, modules: state.modules }));
@@ -1516,100 +1533,129 @@ function renderContent() {
     renderDialogues();
     renderProEnglish();
   }
+  if (state.current === 'invest') {
+    fetchInvestNews();
+  }
+}
+
+/* ==========================================================
+   农历 & 节日
+   ========================================================== */
+var lunarInfo = [0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x0f54d5,0x04ea0,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a0b5,0x025d2,0x092b6,0x092c0,0x0aa50,0x0b6a0,0x09960,0x05ce0,0x05bd0,0x0a8c0,0x0a8d0,0x0b540,0x0b820,0x0a6d0,0x0aa50,0x0b5a0,0x076b0,0x07560,0x052c0,0x05a60,0x0aae0,0x0b2a0,0x0bb50,0x05b20,0x058d0,0x07be0,0x05a30,0x054e0,0x0b3b0,0x074a8,0x0b550,0x0b540,0x0b6a0,0x076a0,0x095b0,0x05960,0x0aa50,0x0ada0,0x14b63,0x04b60,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x0f54d5,0x04ea0,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a0b5,0x025d2,0x092b6,0x092c0,0x0aa50,0x0b6a0,0x09960,0x05ce0,0x05bd0,0x0a8c0,0x0a8d0,0x0b540,0x0b820,0x0a6d0,0x0aa50,0x0b5a0,0x076b0,0x07560,0x052c0,0x05a60,0x0aae0,0x0b2a0,0x0bb50,0x05b20,0x058d0,0x07be0,0x05a30,0x054e0,0x0b3b0,0x074a8,0x0b550,0x0b540,0x0b6a0,0x076a0,0x095b0,0x05960,0x0aa50,0x0ada0,0x14b63,0x04b60,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2];
+
+function lYearDays(y) {
+  var sum = 348;
+  for (var i = 0x8000; i > 0x8; i >>= 1) sum += (lunarInfo[y - 1900] & i) ? 1 : 0;
+  return sum + leapDays(y);
+}
+function leapMonth(y) { return lunarInfo[y - 1900] & 0xf; }
+function leapDays(y) { return leapMonth(y) ? ((lunarInfo[y - 1900] & 0x10000) ? 30 : 29) : 0; }
+function monthDays(y, m) { return (lunarInfo[y - 1900] & (0x10000 >> m)) ? 30 : 29; }
+
+function solar2lunar(y, m, d) {
+  var baseDate = new Date(1900, 0, 31);
+  var objDate = new Date(y, m - 1, d);
+  var offset = Math.floor((objDate - baseDate) / 86400000);
+  var temp = 0, i;
+  for (i = 1900; i < 2100 && offset > 0; i++) {
+    temp = lYearDays(i);
+    offset -= temp;
+  }
+  if (offset < 0) { offset += temp; i--; }
+  var year = i;
+  var leap = leapMonth(year);
+  var isLeap = false;
+  for (i = 1; i < 13 && offset >= 0; i++) {
+    if (leap > 0 && i === leap + 1 && !isLeap) { --i; isLeap = true; temp = leapDays(year); }
+    else { temp = monthDays(year, i); }
+    if (isLeap && i === leap + 1) isLeap = false;
+    offset -= temp;
+  }
+  if (offset === 0 && leap > 0 && i === leap + 1) {
+    if (isLeap) { isLeap = false; } else { isLeap = true; --i; }
+  }
+  if (offset < 0) { offset += temp; --i; }
+  return { year: year, month: i, day: offset + 1, isLeap: isLeap };
+}
+
+var lunarMonths = ['正','二','三','四','五','六','七','八','九','十','冬','腊'];
+var lunarDayNums = ['一','二','三','四','五','六','七','八','九','十'];
+function lunarDayName(d) {
+  if (d === 10) return '初十';
+  if (d === 20) return '二十';
+  if (d === 30) return '三十';
+  if (d < 10) return '初' + lunarDayNums[d - 1];
+  if (d < 20) return '十' + lunarDayNums[d - 11];
+  if (d < 30) return '廿' + lunarDayNums[d - 21];
+  return '';
+}
+
+var lunarFestivals = { '1-1':'春节','1-15':'元宵节','2-2':'龙抬头','5-5':'端午节','7-7':'七夕节','7-15':'中元节','8-15':'中秋节','9-9':'重阳节','12-8':'腊八节','12-23':'小年' };
+var solarFestivals = { '1-1':'元旦','2-14':'情人节','3-8':'妇女节','3-12':'植树节','4-1':'愚人节','5-1':'劳动节','5-4':'青年节','6-1':'儿童节','7-1':'建党节','8-1':'建军节','9-10':'教师节','10-1':'国庆节','12-25':'圣诞节' };
+var solarTermsData = [
+  {n:'小寒',m:1,d:6},{n:'大寒',m:1,d:20},{n:'立春',m:2,d:4},{n:'雨水',m:2,d:19},
+  {n:'惊蛰',m:3,d:6},{n:'春分',m:3,d:20},{n:'清明',m:4,d:5},{n:'谷雨',m:4,d:20},
+  {n:'立夏',m:5,d:5},{n:'小满',m:5,d:21},{n:'芒种',m:6,d:6},{n:'夏至',m:6,d:21},
+  {n:'小暑',m:7,d:7},{n:'大暑',m:7,d:23},{n:'立秋',m:8,d:7},{n:'处暑',m:8,d:23},
+  {n:'白露',m:9,d:8},{n:'秋分',m:9,d:23},{n:'寒露',m:10,d:8},{n:'霜降',m:10,d:23},
+  {n:'立冬',m:11,d:7},{n:'小雪',m:11,d:22},{n:'大雪',m:12,d:7},{n:'冬至',m:12,d:22}
+];
+
+function getLunarAndFestival() {
+  var now = new Date();
+  var y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
+  var lunar = solar2lunar(y, m, d);
+  var lunarStr = (lunar.isLeap ? '闰' : '') + lunarMonths[lunar.month - 1] + '月' + lunarDayName(lunar.day);
+  var fests = [];
+  var sKey = m + '-' + d, lKey = lunar.month + '-' + lunar.day;
+  if (solarFestivals[sKey]) fests.push(solarFestivals[sKey]);
+  if (lunarFestivals[lKey]) fests.push(lunarFestivals[lKey]);
+  for (var i = 0; i < solarTermsData.length; i++) {
+    var t = solarTermsData[i];
+    if (t.m === m && Math.abs(t.d - d) <= 1 && !fests.some(function(f){ return f.indexOf(t.n) >= 0; })) {
+      fests.push(t.n);
+    }
+  }
+  return { lunar: lunarStr, festival: fests.join(' · ') };
 }
 
 /* ==========================================================
    Home
    ========================================================== */
 function viewHome() {
-  const now = new Date();
-  const weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
-  const date = `${now.getMonth()+1}月${now.getDate()}日 · ${weekdays[now.getDay()]}`;
-  const greeting = (() => {
-    const h = now.getHours();
-    if (h < 5) return '夜深了';
-    if (h < 11) return '早上好';
-    if (h < 14) return '中午好';
-    if (h < 18) return '下午好';
-    return '晚上好';
-  })();
+  var now = new Date();
+  var weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+  var dateDisplay = (now.getMonth()+1) + '月' + now.getDate() + '日 ' + weekdays[now.getDay()];
+  var lunarData = getLunarAndFestival();
+  var h = now.getHours();
+  var greeting = h < 5 ? '夜深了' : h < 11 ? '早上好' : h < 14 ? '中午好' : h < 18 ? '下午好' : '晚上好';
+  var todayMood = state.mood[todayStr()] || '';
+  var moods = [
+    { key: 'happy', emoji: '😄', label: '开心' },
+    { key: 'calm', emoji: '😊', label: '平静' },
+    { key: 'sad', emoji: '😔', label: '低落' },
+    { key: 'excited', emoji: '🤩', label: '兴奋' },
+    { key: 'tired', emoji: '😴', label: '疲惫' },
+  ];
 
-  const tasks = [];
-  if (state.thoughts.length) tasks.push({ icon: '💭', title: '回顾最近想法：' + state.thoughts[state.thoughts.length-1].content.slice(0, 14) + '...' });
-  if (state.books.length) {
-    const last = state.books[state.books.length-1];
-    if (last.current < last.total) tasks.push({ icon: '📚', title: '继续阅读《' + last.name + '》' });
-  }
-  if (state.exercises.length) tasks.push({ icon: '🏃', title: '今日运动：' + state.exercises[state.exercises.length-1].name });
-
-  const todos = [];
-  state.books.forEach(b => {
-    if (b.current < b.total) todos.push({ icon: '📖', text: '继续阅读《' + b.name + '》', meta: `已读 ${b.current}/${b.total} 页` });
-  });
-  state.skills.forEach(s => {
-    if (s.level < 5) todos.push({ icon: '🎯', text: '提升技能：' + s.name, meta: `当前 ${s.level}/5` });
-  });
-  if (todos.length === 0) todos.push({ icon: '✏️', text: '在「想法」中记录第一个灵感', meta: '今日灵感' });
-
-  const monthExp = state.expenses
-    .filter(e => e.date.startsWith(now.toISOString().slice(0,7)))
-    .reduce((s, e) => s + Number(e.amount || 0), 0);
-  const monthSave = Object.entries(state.savings)
-    .filter(([k]) => k.startsWith(now.toISOString().slice(0,7)))
-    .reduce((s, [, v]) => s + Number(v || 0), 0);
-  const totalHoldings = state.holdings.reduce((s, h) => s + Number(h.amount || 0), 0);
-
-  return `
-    <div class="card" style="background: var(--gradient-hero); color:#fff; padding: 24px; position:relative; overflow:hidden; margin-bottom: 16px;">
-      <div style="font-size:12px; opacity:0.85;">${date}</div>
-      <div style="font-size:24px; font-weight:700; margin: 6px 0;">${greeting}，帆</div>
-      <div style="font-size:13px; opacity:0.9;">${tasks.length ? '今天有 ' + tasks.length + ' 件事值得关注' : '先把今天最重要的一步走完'}</div>
-      <button class="btn" style="position:absolute; right:20px; top:20px; background:rgba(255,255,255,0.22); color:#fff; border-radius:20px; padding: 6px 14px; font-size:12px; " onclick="openQuickAdd()">+ 添加</button>
-      <div style="position:absolute; right:-30px; top:-30px; width:140px; height:140px; background:rgba(255,255,255,0.1); border-radius:50%;"></div>
-    </div>
-
-    <div class="card" style="margin-bottom: 16px;">
-      <div class="row-between" style="margin-bottom: 14px;">
-        <div class="card-title" style="margin:0;"><div class="card-title-icon">💡</div>今日三件事</div>
-        <span class="text-3 fs-12" style="font-weight:600;">0/${tasks.length || 1}</span>
-      </div>
-      <div style="font-size:12px; color:var(--color-text-3); margin-bottom:12px;">完成一件，今天就向前一步</div>
-      ${(tasks.length ? tasks : [{title: '在想法中记录一个灵感', icon: '💭'}]).map((t, i) => `
-        <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-top:${i>0?'1px solid var(--color-divider)':'none'};">
-          <div style="width:28px; height:28px; border-radius:50%; background:rgba(74,141,255,0.12); color:var(--color-primary); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">${i+1}</div>
-          <div style="flex:1; font-size:13.5px;">${t.icon} ${escapeHtml(t.title)}</div>
-        </div>
-      `).join('')}
-    </div>
-
-    <div class="card" style="margin-bottom: 16px;">
-      <div class="row-between" style="margin-bottom: 14px;">
-        <div class="card-title" style="margin:0;"><div class="card-title-icon">📋</div>待办清单</div>
-        <button class="btn btn-sm btn-soft" data-go="reading">查看全部</button>
-      </div>
-      <div style="font-size:12px; color:var(--color-text-3); margin-bottom:12px;">按截止时间收拢工作</div>
-      ${todos.slice(0, 4).map(t => `
-        <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-top: 1px solid var(--color-divider);">
-          <div style="width:8px; height:8px; border-radius:50%; background: var(--color-primary);"></div>
-          <div style="flex:1;">
-            <div style="font-size:13.5px; font-weight:500;">${t.icon} ${escapeHtml(t.text)}</div>
-            <div style="font-size:11px; color:var(--color-text-3); margin-top:2px;">${escapeHtml(t.meta)}</div>
-          </div>
-          <div style="color:var(--color-text-3); font-size:16px;">›</div>
-        </div>
-      `).join('')}
-    </div>
-
-    <div class="card" style="background: linear-gradient(135deg, #2B3A55 0%, #4A5D82 100%); color: #fff;">
-      <div class="row-between">
-        <div>
-          <div style="font-size:14px; font-weight:700;">财务速览 💰</div>
-          <div style="font-size:11px; opacity:0.75; margin-top:4px;">本月支出 ¥${fmtMoney(monthExp)} · 存款 ¥${fmtMoney(monthSave)} · 持仓 ¥${fmtMoney(totalHoldings)}</div>
-        </div>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.18); color:#fff;" data-go="expense">隐藏</button>
-      </div>
-    </div>
-  `;
+  return '<div class="home-center">' +
+    '<div style="font-size:16px;color:var(--color-text-2);font-weight:500;">' + dateDisplay + '</div>' +
+    '<div style="font-size:14px;color:var(--color-text-3);margin-top:4px;">农历 ' + lunarData.lunar + '</div>' +
+    (lunarData.festival ? '<div style="margin-top:6px;font-size:15px;color:var(--color-danger);font-weight:600;">' + lunarData.festival + '</div>' : '<div style="margin-top:6px;height:15px;"></div>') +
+    '<div style="background:var(--gradient-hero);color:#fff;border-radius:var(--radius-xl);padding:28px 36px;box-shadow:var(--shadow-card);margin:24px 0;max-width:340px;width:100%;position:relative;overflow:hidden;">' +
+      '<div style="position:absolute;right:-30px;top:-30px;width:120px;height:120px;background:rgba(255,255,255,0.1);border-radius:50%;"></div>' +
+      '<div style="font-size:26px;font-weight:700;position:relative;">' + greeting + '，帆</div>' +
+      '<div style="font-size:13px;opacity:0.85;margin-top:6px;position:relative;">今天也要好好生活</div>' +
+    '</div>' +
+    '<div style="margin-top:4px;">' +
+      '<div style="font-size:13px;color:var(--color-text-2);margin-bottom:14px;">今天心情怎么样？</div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">' +
+        moods.map(function(m) {
+          return '<div class="mood-item ' + (todayMood === m.key ? 'selected' : '') + '" data-mood="' + m.key + '" title="' + m.label + '">' + m.emoji + '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+  '</div>';
 }
 
 /* ==========================================================
@@ -1663,7 +1709,7 @@ function viewSleep() {
 
   return `
     <div class="sleep-hero">
-      <div class="sleep-hero-label">📱 今日最后灭屏时间</div>
+      <div class="sleep-hero-label">${todayRec && todayRec.detected ? '🤖 自动检测灭屏时间' : '📱 今日灭屏时间'}</div>
       <div class="sleep-hero-time">${todayDisplay}</div>
       <div class="sleep-hero-meta">
         <span>📅 ${today.getMonth()+1}月${today.getDate()}日</span>
@@ -1728,7 +1774,7 @@ function viewSleep() {
             return `<div class="sleep-item">
               <div class="sleep-item-date">${d}</div>
               <div class="sleep-item-time">${r.time}</div>
-              <div class="sleep-item-tag ${tagCls}">${tag}</div>
+              <div class="sleep-item-tag ${tagCls}">${r.detected ? '🤖 ' : ''}${tag}</div>
             </div>`;
           }).join('')
         }
@@ -1815,16 +1861,16 @@ function viewExercise() {
 
     <div class="row-between" style="margin-bottom: 12px;">
       <div class="card-title" style="margin:0;"><div class="card-title-icon">🏃</div>运动记录 (两列五行)</div>
-      <button class="btn btn-primary" onclick="openExerciseForm()">+ 添加</button>
+      <span class="text-3 fs-12">点击空白格添加</span>
     </div>
 
     <div class="exercise-grid">
       <div class="exercise-cell" style="background: var(--color-bg-soft); font-weight:600; font-size:12px; color:var(--color-text-3);">运动名称</div>
       <div class="exercise-cell" style="background: var(--color-bg-soft); font-weight:600; font-size:12px; color:var(--color-text-3);">累计时长 (分)</div>
       ${items.map(item => `
-        <div class="exercise-cell">
+        <div class="exercise-cell" ${item.empty ? 'style="cursor:pointer;" onclick="openExerciseForm()"' : ''}>
           ${item.empty
-            ? '<span class="text-3">— 等待打卡</span>'
+            ? '<span class="text-3" style="cursor:pointer;">+ 添加运动</span>'
             : `<div>
                 <div class="exercise-cell-name">${escapeHtml(item.name)}</div>
                 <div class="fs-12 text-3">${item.list.length} 次</div>
@@ -1834,7 +1880,7 @@ function viewExercise() {
                                  <button class="delete" title="删除全部" onclick="deleteExerciseName('${escapeHtml(item.name)}')">🗑</button>`}
           </div>
         </div>
-        <div class="exercise-cell">
+        <div class="exercise-cell" ${item.empty ? 'style="cursor:pointer;" onclick="openExerciseForm()"' : ''}>
           ${item.empty ? '<span class="text-3">—</span>' : `<div class="exercise-cell-time">${item.total} 分</div>`}
         </div>
       `).join('')}
@@ -1915,97 +1961,137 @@ function deleteExercise(id) {
 /* ==========================================================
    模块 3: 投资
    ========================================================== */
-const SECTOR_DATA = [
-  { name: '科技', icon: '💻', color: '#4A8DFF', stocks: [
-    { name: '英伟达', chg: '+1.2%' }, { name: '苹果', chg: '+0.8%' }, { name: '微软', chg: '-0.5%' }
-  ]},
-  { name: 'CPO', icon: '🔌', color: '#6FA1FF', stocks: [
-    { name: '中际旭创', chg: '+3.5%' }, { name: '新易盛', chg: '+2.1%' }, { name: '天孚通信', chg: '+1.8%' }
-  ]},
-  { name: '芯片', icon: '🔧', color: '#8E6FE0', stocks: [
-    { name: '中芯国际', chg: '+2.3%' }, { name: '北方华创', chg: '+1.5%' }, { name: '海光信息', chg: '-0.3%' }
-  ]},
-  { name: '锂矿', icon: '⚡', color: '#F0B33A', stocks: [
-    { name: '天齐锂业', chg: '+1.8%' }, { name: '赣锋锂业', chg: '+0.9%' }, { name: '盐湖股份', chg: '-0.2%' }
-  ]},
-  { name: '机器人', icon: '🤖', color: '#2DC985', stocks: [
-    { name: '埃斯顿', chg: '+4.2%' }, { name: '绿的谐波', chg: '+2.7%' }, { name: '汇川技术', chg: '+1.4%' }
-  ]},
-  { name: '卫星', icon: '🛰', color: '#5B8DEF', stocks: [
-    { name: '中国卫星', chg: '+1.9%' }, { name: '上海瀚讯', chg: '+2.4%' }, { name: '震有科技', chg: '+3.1%' }
-  ]},
-  { name: '游戏', icon: '🎮', color: '#B49BFF', stocks: [
-    { name: '三七互娱', chg: '-0.8%' }, { name: '世纪华通', chg: '+1.2%' }, { name: '吉比特', chg: '+0.5%' }
-  ]},
-  { name: 'AI 算力', icon: '🧠', color: '#F25C5C', stocks: [
-    { name: '浪潮信息', chg: '+2.8%' }, { name: '紫光股份', chg: '+1.6%' }, { name: '中科曙光', chg: '+2.1%' }
-  ]},
-];
+var INVEST_CACHE_KEY = 'fanfei_invest_cache';
 
 function viewInvest() {
-  return `
-    <div class="tabs" data-tabs="investTabs">
-      <div class="tab active" data-tab="news">📡 板块热点</div>
-      <div class="tab" data-tab="holdings">💼 我的持仓</div>
-    </div>
+  var s = '<div class="tabs" data-tabs="investTabs">' +
+    '<div class="tab active" data-tab="news">📡 板块行情</div>' +
+    '<div class="tab" data-tab="holdings">💼 我的持仓</div>' +
+    '</div>' +
 
-    <div class="tab-panel active" data-tab="news">
-      <div class="row-between" style="margin-bottom: 12px;">
-        <div class="card-title" style="margin:0;"><div class="card-title-icon">🔥</div>今日板块热点 (${todayStr()})</div>
-        <span class="text-3 fs-12">每日 09:00 推送</span>
-      </div>
-      <div class="sector-grid">
-        ${SECTOR_DATA.map(s => `
-          <div class="sector-card">
-            <div class="sector-head">
-              <div class="sector-icon" style="background:${s.color}">${s.icon}</div>
-              <div class="sector-name">${s.name}</div>
-            </div>
-            <div class="sector-list">
-              ${s.stocks.map(st => {
-                const up = st.chg.startsWith('+');
-                return `<div class="sector-item">
-                  <span class="sector-item-stock">${escapeHtml(st.name)}</span>
-                  <span class="sector-item-change ${up ? 'up' : 'down'}">${st.chg}</span>
-                </div>`;
-              }).join('')}
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
+    '<div class="tab-panel active" data-tab="news">' +
+      '<div class="row-between" style="margin-bottom:12px;">' +
+        '<div class="card-title" style="margin:0;"><div class="card-title-icon">📊</div>板块行情速递</div>' +
+        '<button class="btn btn-soft btn-sm" onclick="fetchInvestNews()">🔄 刷新</button>' +
+      '</div>' +
+      '<div id="investNewsContent"><div style="text-align:center;padding:40px 20px;color:var(--color-text-3);font-size:13px;">📊 正在获取最新板块数据...</div></div>' +
+    '</div>' +
 
-    <div class="tab-panel" data-tab="holdings">
-      <div class="row-between" style="margin-bottom: 12px;">
-        <div class="card-title" style="margin:0;"><div class="card-title-icon">💼</div>我的基金/股票持仓</div>
-        <button class="btn btn-primary" onclick="openHoldingForm()">+ 添加</button>
-      </div>
+    '<div class="tab-panel" data-tab="holdings">';
 
-      ${state.holdings.length === 0 ? '<div class="empty-state"><div class="empty-state-icon">📈</div>还没有持仓记录，点击添加</div>' : `
-        <div class="holdings-list">
-          ${state.holdings.map(h => `
-            <div class="holding-card">
-              <div style="width:36px;height:36px;border-radius:9px;background:var(--gradient-soft);color:var(--color-primary);display:flex;align-items:center;justify-content:center;font-weight:700;">${escapeHtml(h.name.slice(0,1))}</div>
-              <div>
-                <div class="holding-name">${escapeHtml(h.name)}</div>
-                <div class="holding-code">${h.code ? '#' + escapeHtml(h.code) : ''} · ${h.date}</div>
-              </div>
-              <div class="holding-amount">
-                <div class="holding-amount-value">¥${fmtMoney(h.amount)}</div>
-                <div class="holding-amount-label">本金</div>
-              </div>
-              <div class="holding-actions">
-                <button onclick="deleteHolding('${h.id}')" class="delete" title="删除">🗑</button>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-        <div class="ai-tip-card">
-          <strong>🤖 AI 优化分析</strong><br><br>${escapeHtml(generateHoldingAdvice())}
-        </div>
-      `}
-    </div>
-  `;
+  if (state.holdings.length === 0) {
+    s += '<div class="empty-state" style="cursor:pointer;" onclick="openHoldingForm()"><div class="empty-state-icon">📈</div>还没有持仓记录<br><span style="color:var(--color-primary);">点击添加第一笔</span></div>';
+  } else {
+    s += '<div class="holdings-list">';
+    state.holdings.forEach(function(h) {
+      s += '<div class="holding-card">' +
+        '<div style="width:36px;height:36px;border-radius:9px;background:var(--gradient-soft);color:var(--color-primary);display:flex;align-items:center;justify-content:center;font-weight:700;">' + escapeHtml(h.name.slice(0,1)) + '</div>' +
+        '<div><div class="holding-name">' + escapeHtml(h.name) + '</div><div class="holding-code">' + (h.code ? '#' + escapeHtml(h.code) : '') + ' · ' + h.date + '</div></div>' +
+        '<div class="holding-amount"><div class="holding-amount-value">¥' + fmtMoney(h.amount) + '</div><div class="holding-amount-label">本金</div></div>' +
+        '<div class="holding-actions"><button onclick="deleteHolding(\'' + h.id + '\')" class="delete" title="删除">🗑</button></div>' +
+      '</div>';
+    });
+    s += '</div><div class="ai-tip-card"><strong>🤖 AI 优化分析</strong><br><br>' + escapeHtml(generateHoldingAdvice()) + '</div>';
+  }
+  s += '</div>';
+  return s;
+}
+
+function fetchInvestNews() {
+  var container = document.getElementById('investNewsContent');
+  if (!container) return;
+  var cached = null;
+  try { cached = JSON.parse(localStorage.getItem(INVEST_CACHE_KEY)); } catch(e) {}
+  if (cached && (Date.now() - cached.time < 5 * 60 * 1000)) {
+    renderInvestNews(cached.sectors);
+    return;
+  }
+  container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--color-text-3);font-size:13px;">📊 正在获取最新板块数据...</div>';
+  var cbName = 'jsonpInvest_' + Date.now();
+  window[cbName] = function(data) {
+    var sectors = [];
+    if (data && data.data && data.data.diff) {
+      sectors = data.data.diff.map(function(s) {
+        return { name: s.f14, change: s.f3, up: s.f104, down: s.f105, value: s.f2 };
+      }).filter(function(s) { return s.name; });
+      sectors.sort(function(a, b) { return Math.abs(b.change || 0) - Math.abs(a.change || 0); });
+      localStorage.setItem(INVEST_CACHE_KEY, JSON.stringify({ time: Date.now(), sectors: sectors }));
+    }
+    if (sectors.length) {
+      renderInvestNews(sectors);
+    } else if (cached) {
+      renderInvestNews(cached.sectors);
+    } else {
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📡</div>暂无数据，请检查网络后刷新</div>';
+    }
+    delete window[cbName];
+    if (script.parentNode) script.remove();
+  };
+  var script = document.createElement('script');
+  script.src = 'https://push2.eastmoney.com/api/qt/clist/get?cb=' + cbName + '&pn=1&pz=100&po=1&np=1&fltt=2&invt=2&fs=m:90+t:2&fields=f12,f14,f3,f2,f104,f105';
+  script.onerror = function() {
+    delete window[cbName];
+    if (script.parentNode) script.remove();
+    if (cached) { renderInvestNews(cached.sectors); }
+    else { container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📡</div>网络异常，点击刷新重试</div>'; }
+  };
+  document.head.appendChild(script);
+  setTimeout(function() {
+    if (window[cbName]) {
+      delete window[cbName];
+      if (script.parentNode) script.remove();
+      if (cached) { renderInvestNews(cached.sectors); }
+      else { container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📡</div>请求超时，点击刷新重试</div>'; }
+    }
+  }, 8000);
+}
+
+function renderInvestNews(sectors) {
+  var container = document.getElementById('investNewsContent');
+  if (!container || !sectors || !sectors.length) {
+    if (container) container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📡</div>暂无数据</div>';
+    return;
+  }
+  var now = new Date();
+  var timeStr = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  var html = '<div style="font-size:12px;color:var(--color-text-3);margin-bottom:12px;">数据更新于 ' + timeStr + ' · 来源：东方财富</div>';
+  var gainers = sectors.filter(function(s) { return s.change > 0; }).sort(function(a, b) { return b.change - a.change; });
+  var losers = sectors.filter(function(s) { return s.change < 0; }).sort(function(a, b) { return a.change - b.change; });
+  var upCount = gainers.length, downCount = losers.length;
+  html += '<div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(74,141,255,0.06),rgba(142,111,224,0.06));border:1px solid rgba(74,141,255,0.15);">' +
+    '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">📊 今日板块概览</div>' +
+    '<div style="display:flex;gap:20px;font-size:12px;">' +
+      '<span style="color:var(--color-danger);">🔴 上涨 ' + upCount + ' 个板块</span>' +
+      '<span style="color:var(--color-success);">🟢 下跌 ' + downCount + ' 个板块</span>' +
+    '</div></div>';
+  if (gainers.length > 0) {
+    html += '<div style="font-size:13px;font-weight:600;color:var(--color-danger);margin-bottom:8px;">🔴 涨幅榜 TOP 10</div>';
+    html += gainers.slice(0, 10).map(function(s, i) { return renderSectorCard(s, i + 1); }).join('');
+  }
+  if (losers.length > 0) {
+    html += '<div style="font-size:13px;font-weight:600;color:var(--color-success);margin:14px 0 8px;">🟢 跌幅榜 TOP 10</div>';
+    html += losers.slice(0, 10).map(function(s, i) { return renderSectorCard(s, i + 1); }).join('');
+  }
+  container.innerHTML = html;
+}
+
+function renderSectorCard(s, rank) {
+  var isUp = s.change > 0;
+  var chgColor = isUp ? 'var(--color-danger)' : 'var(--color-success)';
+  var arrow = isUp ? '↑' : '↓';
+  var headline = s.name + '板块' + (isUp ? '涨幅' : '跌幅') + Math.abs(s.change || 0).toFixed(2) + '%，上涨' + (s.up || 0) + '家，下跌' + (s.down || 0) + '家';
+  return '<div class="sector-card" style="margin-bottom:8px;">' +
+    '<div class="sector-head">' +
+      '<div class="sector-icon" style="background:' + (isUp ? 'var(--color-danger)' : 'var(--color-success)') + ';color:#fff;font-weight:700;font-size:14px;">' + rank + '</div>' +
+      '<div class="sector-name">' + escapeHtml(s.name) + '</div>' +
+      '<div style="margin-left:auto;font-size:16px;font-weight:700;color:' + chgColor + ';">' + arrow + Math.abs(s.change || 0).toFixed(2) + '%</div>' +
+    '</div>' +
+    '<div style="font-size:12px;color:var(--color-text-2);margin-top:4px;line-height:1.6;">' + escapeHtml(headline) + '</div>' +
+    '<div style="display:flex;gap:12px;margin-top:6px;font-size:11px;color:var(--color-text-3);">' +
+      '<span>📈 ' + (s.up || 0) + '家上涨</span>' +
+      '<span>📉 ' + (s.down || 0) + '家下跌</span>' +
+    '</div>' +
+  '</div>';
 }
 
 function generateHoldingAdvice() {
@@ -2726,9 +2812,9 @@ function viewReading() {
   return `
     <div class="row-between" style="margin-bottom: 12px;">
       <div class="card-title" style="margin:0;"><div class="card-title-icon">📚</div>我的阅读 (${state.books.length})</div>
-      <button class="btn btn-primary" onclick="openBookForm()">+ 添加</button>
+      <span class="text-3 fs-12">点击下方添加</span>
     </div>
-    ${state.books.length === 0 ? '<div class="empty-state"><div class="empty-state-icon">📖</div>还没有添加书籍</div>' :
+    ${state.books.length === 0 ? '<div class="empty-state" style="cursor:pointer;" onclick="openBookForm()"><div class="empty-state-icon">📖</div>还没有添加书籍<br><span style="color:var(--color-primary);">点击添加第一本书</span></div>' :
       state.books.map(b => {
         const pct = b.total > 0 ? Math.min(100, (b.current / b.total * 100)) : 0;
         return `
@@ -2832,9 +2918,9 @@ function viewThoughts() {
 
     <div class="row-between" style="margin-bottom: 12px;">
       <div class="card-title" style="margin:0;"><div class="card-title-icon">💭</div>我的想法 (${state.thoughts.length})</div>
-      <button class="btn btn-primary" onclick="openThoughtForm()">+ 记录</button>
+      <span class="text-3 fs-12">点击下方记录</span>
     </div>
-    ${recent.length === 0 ? '<div class="empty-state"><div class="empty-state-icon">💭</div>还没有记录，点击添加</div>' :
+    ${recent.length === 0 ? '<div class="empty-state" style="cursor:pointer;" onclick="openThoughtForm()"><div class="empty-state-icon">💭</div>还没有记录<br><span style="color:var(--color-primary);">点击记录第一个想法</span></div>' :
       recent.map(t => `
         <div class="thought-card">
           <div class="thought-actions">
@@ -2949,9 +3035,9 @@ function viewSkill() {
   return `
     <div class="row-between" style="margin-bottom: 12px;">
       <div class="card-title" style="margin:0;"><div class="card-title-icon">🎯</div>技能清单 (${state.skills.length})</div>
-      <button class="btn btn-primary" onclick="openSkillForm()">+ 添加</button>
+      <span class="text-3 fs-12">点击下方添加</span>
     </div>
-    ${state.skills.length === 0 ? '<div class="empty-state"><div class="empty-state-icon">🎯</div>还没有添加技能</div>' :
+    ${state.skills.length === 0 ? '<div class="empty-state" style="cursor:pointer;" onclick="openSkillForm()"><div class="empty-state-icon">🎯</div>还没有添加技能<br><span style="color:var(--color-primary);">点击添加第一项技能</span></div>' :
       state.skills.map(s => `
         <div class="skill-card">
           <div class="skill-head">
@@ -3149,6 +3235,14 @@ function bindContentDelegation() {
   var content = $('#content');
 
   content.addEventListener('click', function(e) {
+    var moodEl = e.target.closest('[data-mood]');
+    if (moodEl) {
+      state.mood[todayStr()] = moodEl.dataset.mood;
+      saveState();
+      $$('.mood-item').forEach(function(el) { el.classList.toggle('selected', el.dataset.mood === moodEl.dataset.mood); });
+      toast('心情已记录');
+      return;
+    }
     var tabEl = e.target.closest('.tab[data-tab]');
     if (tabEl) {
       var tabsEl = tabEl.closest('.tabs');
@@ -3230,10 +3324,6 @@ function bindGlobalEvents() {
   });
   var menuBtn = $('#topbarMenu');
   if (menuBtn) menuBtn.addEventListener('click', toggleSidebar);
-  var addBtn = $('#topbarAdd');
-  if (addBtn) addBtn.addEventListener('click', openQuickAdd);
-  var fab = $('#fabBtn');
-  if (fab) fab.addEventListener('click', openQuickAdd);
   var overlay = $('#sidebarOverlay');
   if (overlay) overlay.addEventListener('click', closeSidebar);
   $('#modalMask').addEventListener('click', function(e) {
@@ -3550,6 +3640,28 @@ function init() {
     renderSidebar();
     renderContent();
     bindGlobalEvents();
+    // 自动检测灭屏时间（22:00-03:00 页面隐藏时自动记录）
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden') {
+        var now = new Date();
+        var h = now.getHours();
+        if (h >= 22 || h < 3) {
+          var timeStr = pad(now.getHours()) + ':' + pad(now.getMinutes());
+          var recordDate;
+          if (h >= 22) {
+            recordDate = todayStr();
+          } else {
+            var yest = new Date(now);
+            yest.setDate(yest.getDate() - 1);
+            recordDate = dateStr(yest);
+          }
+          if (!state.sleep[recordDate] || state.sleep[recordDate].detected) {
+            state.sleep[recordDate] = { time: timeStr, timestamp: now.getTime(), detected: true };
+            _doSave();
+          }
+        }
+      }
+    });
     // 注册 Service Worker (PWA 离线支持)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').then(() => {
@@ -3568,105 +3680,6 @@ function init() {
 document.addEventListener('DOMContentLoaded', init);
 if (document.readyState !== 'loading') init();
 
-// ===== PWA 安装处理 =====
-var deferredPrompt = null;
-
-// 捕获安装提示事件
-window.addEventListener('beforeinstallprompt', function(e) {
-  console.log('beforeinstallprompt fired');
-  e.preventDefault();
-  deferredPrompt = e;
-  showInstallButton();
-});
-
-// 显示安装按钮
-function showInstallButton() {
-  var btn = document.getElementById('installBtn');
-  if (btn) {
-    btn.style.display = 'flex';
-  }
-}
-
-// 点击安装按钮
-document.addEventListener('DOMContentLoaded', function() {
-  var btn = document.getElementById('installBtn');
-  if (btn) {
-    btn.addEventListener('click', function() {
-      if (!deferredPrompt) {
-        // 如果浏览器没触发 beforeinstallprompt，显示手动安装指引
-        showInstallGuide();
-        return;
-      }
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(function(choice) {
-        console.log('Install choice:', choice.outcome);
-        if (choice.outcome === 'accepted') {
-          btn.style.display = 'none';
-        }
-        deferredPrompt = null;
-      });
-    });
-  }
-});
-
-// 检测是否已安装
-window.addEventListener('appinstalled', function() {
-  var btn = document.getElementById('installBtn');
-  if (btn) btn.style.display = 'none';
-  console.log('App installed');
-});
-
-// 如果已经以 standalone 模式运行，隐藏安装按钮
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-  document.addEventListener('DOMContentLoaded', function() {
-    var btn = document.getElementById('installBtn');
-    if (btn) btn.style.display = 'none';
-  });
-}
-
-// 手动安装指引弹窗（当 beforeinstallprompt 不可用时）
-function showInstallGuide() {
-  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  var isAndroid = /Android/.test(navigator.userAgent);
-  var guide = '';
-  
-  if (isAndroid) {
-    guide = '<div style="text-align:left;line-height:1.8;font-size:14px;">' +
-      '<p style="margin:0 0 10px;"><b>Chrome 浏览器安装方法：</b></p>' +
-      '<p style="margin:0 0 6px;">1. 点 Chrome 右上角 <b>⋮</b> 三个点</p>' +
-      '<p style="margin:0 0 6px;">2. 找到「<b>安装应用</b>」或「<b>添加到主屏幕</b>」</p>' +
-      '<p style="margin:0 0 6px;">3. 如果没有，试试点「<b>添加到主屏幕</b>」</p>' +
-      '<hr style="border:none;border-top:1px solid #eee;margin:12px 0;">' +
-      '<p style="margin:0 0 10px;"><b>vivo 浏览器安装方法：</b></p>' +
-      '<p style="margin:0 0 6px;">1. 点底部 <b>☰</b> 菜单</p>' +
-      '<p style="margin:0 0 6px;">2. 选「<b>添加到桌面</b>」</p>' +
-      '<p style="margin:0 0 6px;">3. 勾选「<b>以应用模式打开</b>」（如果有）</p>' +
-      '<hr style="border:none;border-top:1px solid #eee;margin:12px 0;">' +
-      '<p style="margin:0;color:#999;font-size:12px;">安装后桌面会出现「帆飞之路」图标，点击即全屏运行无地址栏</p>' +
-      '</div>';
-  } else if (isIOS) {
-    guide = '<div style="text-align:left;line-height:1.8;font-size:14px;">' +
-      '<p style="margin:0 0 10px;"><b>Safari 安装方法：</b></p>' +
-      '<p style="margin:0 0 6px;">1. 点底部 <b>分享</b> 按钮（方框+向上箭头）</p>' +
-      '<p style="margin:0 0 6px;">2. 选「<b>添加到主屏幕</b>」</p>' +
-      '<p style="margin:0 0 6px;">3. 点「<b>添加</b>」</p>' +
-      '</div>';
-  } else {
-    guide = '<div style="text-align:left;line-height:1.8;font-size:14px;">' +
-      '<p style="margin:0;">请在浏览器菜单中选择「安装应用」或「添加到主屏幕」</p>' +
-      '</div>';
-  }
-  
-  var mask = document.createElement('div');
-  mask.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
-  var box = document.createElement('div');
-  box.style.cssText = 'background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
-  box.innerHTML = '<div style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1B2230;">📱 安装到桌面</div>' + guide + '<button id="closeGuide" style="margin-top:20px;width:100%;padding:12px;background:linear-gradient(135deg,#4A8DFF,#9B7FE8);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">知道了</button>';
-  mask.appendChild(box);
-  document.body.appendChild(mask);
-  mask.querySelector('#closeGuide').addEventListener('click', function() { mask.remove(); });
-  mask.addEventListener('click', function(e) { if (e.target === mask) mask.remove(); });
-}
 </script>
 
 </body>
